@@ -1,7 +1,5 @@
 package CSCI485ClassProject.models;
 
-import CSCI485ClassProject.StatusCode;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -9,15 +7,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
+import CSCI485ClassProject.StatusCode;
 
 /**
- * TableMetadata defines the view of the table's metadata in system.
+ * models.TableMetadata defines the view of the table's metadata in system.
  */
 public class TableMetadata {
 
   // Map from AttributeName to AttributeType
-  private HashMap<String, AttributeType> attributes;
+  private HashMap<String, CSCI485ClassProject.models.AttributeType> attributes;
 
   // A list contains names of the primary key attribute.
   private Set<String> primaryKeys;

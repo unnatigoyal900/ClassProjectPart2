@@ -3,34 +3,58 @@ package CSCI485ClassProject;
 import CSCI485ClassProject.models.ComparisonOperator;
 import CSCI485ClassProject.models.Record;
 
+import java.util.ArrayList;
+
+import com.apple.foundationdb.Database;
+import com.apple.foundationdb.FDB;
+import com.apple.foundationdb.FDBException;
+import com.apple.foundationdb.KeyValue;
+import com.apple.foundationdb.Range;
+import com.apple.foundationdb.Transaction;
+import com.apple.foundationdb.directory.DirectoryLayer;
+import com.apple.foundationdb.directory.DirectorySubspace;
+import com.apple.foundationdb.subspace.Subspace;
+import com.apple.foundationdb.tuple.Tuple;
 public class RecordsImpl implements Records{
 
+  private Database db;
   @Override
   public StatusCode insertRecord(String tableName, String[] primaryKeys, Object[] primaryKeysValues, String[] attrNames, Object[] attrValues) {
     Transaction tr = db.createTransaction();
       // Get table's subspace
-      byte[] tableSubspace = tr.getDatabase().openSync(tableName.getBytes()).join();
+      ArrayList<String> path = new ArrayList();
+      path.add(tableName);
+      DirectorySubspace tableSubspace = FDBHelper.openSubspace(tr,path);
       
       // Create a tuple with primary keys
-      Tuple primaryKeyTuple = Tuple.fromArray(primaryKeysValues);
+      Tuple primaryKeyTuple = new Tuple();
+      for(int i =0; i<primaryKeysValues.length; i++){
+        primaryKeyTuple = primaryKeyTuple.addObject(primaryKeysValues[i]);
+      }
       
       // Check if the record exists
       byte[] recordKey = Tuple.from(tableName, primaryKeyTuple).pack();
       byte[] existingRecord = tr.get(recordKey).join();
       
       if(existingRecord != null) {
-          return StatusCode.RECORD_ALREADY_EXISTS;
+          return StatusCode.DATA_RECORD_CREATION_RECORD_ALREADY_EXISTS;
       }
       
       // Create a tuple with attribute values
-      Tuple attrTuple = Tuple.fromArray(attrValues);
+      Tuple attrTuple = new Tuple();
+      for(int i = 0; i<attrValues.length; i++){
+        attrTuple = attrTuple.addObject(attrValues[i]);
+      }
       
       // Create a tuple with attribute names
-      Tuple attrNameTuple = Tuple.fromArray(attrNames);
+      Tuple attrNameTuple = new Tuple();
+      for(int i = 0; i <attrNames.length; i++){
+        attrNameTuple = attrNameTuple.add(attrNames[i]);
+      }
       
       // Pack the tuple of attribute names and values
       for(int i = 0; i<attrValues.length; i++){
-        attrNameTuple = attrNameTuple.add(attrValues[i]);
+        attrNameTuple = attrNameTuple.addObject(attrValues[i]);
       }
       //byte[] packedAttrs = attrNameTuple.packWithValues(attrTuple);
       
@@ -43,7 +67,7 @@ public class RecordsImpl implements Records{
       // Commit the transaction
       tr.commit().join();
       
-      return StatusCode.OK;
+      return StatusCode.SUCCESS;
   }
 
   @Override

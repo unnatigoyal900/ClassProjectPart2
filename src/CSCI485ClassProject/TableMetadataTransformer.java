@@ -1,4 +1,8 @@
 import com.apple.foundationdb.tuple.Tuple;
+import CSCI485ClassProject.models.TableMetadata;
+import CSCI485ClassProject.models.AttributeType;
+import CSCI485ClassProject.FDBKVPair;
+import CSCI485ClassProject.FDBHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -12,7 +12,7 @@ public interface Records {
   /**
    * Insert a new row into the table.
    *
-   * Given primary keys and values must match the specification in TableMetadata.
+   * Given primary keys and values must match the specification in models.TableMetadata.
    *
    * If given attributes does not exist in the schema, attributes should be added to the schema.
    *
@@ -23,51 +23,9 @@ public interface Records {
    * @param attrValues attribute values(doesn't contain primary key values)
    * @return StatusCode
    */
-  StatusCode insertRecord(String tableName, String[] primaryKeys, Object[] primaryKeysValues, String[] attrNames, Object[] attrValues)
-  {
-    try (Transaction tr = database.createTransaction()) {
-        // Encode the primary key and attribute values as FoundationDB tuples
-        Tuple primaryKeyTuple = Tuple.from(primaryKeysValues);
-        Tuple attrTuple = Tuple.from(attrValues);
-        
-        // Get the key to use for the record in the database
-        byte[] recordKey = getRecordKey(tableName, primaryKeyTuple);
-        
-        // Check if the record already exists in the database
-        byte[] existingRecord = tr.get(recordKey).join();
-        if (existingRecord != null) {
-            // If the record already exists, return an error status code
-            return StatusCode.RECORD_ALREADY_EXISTS;
-        }
-        
-        // Get the metadata for the table
-        TableMetadata tableMetadata = getTableMetadata(tableName);
-        
-        // Check if the attribute names are valid for the table
-        for (String attrName : attrNames) {
-            if (!tableMetadata.containsAttribute(attrName)) {
-                // If an attribute is not in the schema, add it to the schema
-                tableMetadata.addAttribute(attrName, DataType.fromObject(attrValues[0]));
-            }
-        }
-        
-        // Serialize the attribute tuple using the table metadata
-        byte[] attrBytes = tableMetadata.serializeTuple(attrTuple);
-        
-        // Write the serialized attribute tuple to the database at the record key
-        tr.set(recordKey, attrBytes);
-        
-        // Commit the transaction
-        tr.commit().join();
-        
-        // Return a success status code
-        return StatusCode.SUCCESS;
-        
-    } catch (Exception e) {
-        // Handle any exceptions thrown during the transaction
-        return StatusCode.ERROR;
-    }
-}
+  StatusCode insertRecord(String tableName, String[] primaryKeys, Object[] primaryKeysValues, String[] attrNames, Object[] attrValues);
+
+  
 
   /**
    * Open a cursor that iterates a table with given mode.
